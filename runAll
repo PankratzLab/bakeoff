@@ -1,0 +1,11 @@
+#!/bin/bash
+
+TOTAL_SAMPLES=$(wc -l /scratch.global/neis/bakeoff/group1/samples.txt | awk '{print $1}')
+OFFSET=0
+CHUNKSIZE=$2
+NUM_CHUNKS=$(((TOTAL_SAMPLES + CHUNKSIZE - 1) / CHUNKSIZE))
+
+for ((i=0; i<NUM_CHUNKS; i++)); do
+    sbatch --array=1-${CHUNKSIZE} -p amd2tb --export=TOTAL_SAMPLES=${TOTAL_SAMPLES},OFFSET=${OFFSET} rufus.slrm
+    OFFSET=$((OFFSET + CHUNKSIZE))
+done

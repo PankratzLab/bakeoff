@@ -1,0 +1,51 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%A_%a.e
+#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
+#SBATCH --mail-type=END,FAIL
+#SBATCH --time=48:00:00
+#SBATCH -n 40
+#SBATCH -N 1
+#SBATCH --mem 128G
+
+
+set -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+
+module load parallel
+
+
+refDir=/home/pankrat2/public/resources/GATK4/
+cramDir1=/scratch.global/neis/bakeoff/group1/cram/
+cramDir2=/scratch.global/neis/bakeoff/group2/cram/
+rufusRefDir=/home/pankrat2/public/resources/RUFUS/
+
+
+SAMPLE_NUM=$(($SLURM_ARRAY_TASK_ID+$OFFSET))
+
+while [ ${SAMPLE_NUM} -le ${TOTAL_SAMPLES} ]; do
+    SAMPLE=$(sed -n "${SAMPLE_NUM}p" /scratch.global/neis/bakeoff/${GROUP}/samples.txt)
+    if [[ -z $(find ${GROUP}/${SAMPLE}/ -name "*FINAL.vcf.gz.tbi") ]]; then
+        echo "Sample ${SAMPLE} does not have vcf index file. Running RUFUS on sample ${SAMPLE}"
+        mkdir -p ${GROUP}/${SAMPLE}
+        break
+    else
+        echo "Sample ${SAMPLE} already done"
+        SAMPLE_NUM=$((SAMPLE_NUM + SLURM_ARRAY_TASK_COUNT))
+    fi
+done
+
+singularity run --pwd "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" \
+--bind "$refDir" \
+--bind "$cramDir1" \
+--bind "$cramDir2"  \
+--bind "$rufusRefDir" \
+--bind "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" \
+"docker://ghcr.io/pankratzlab/rufus:master" \
+/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 40 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa

@@ -1,0 +1,31 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH -o /scratch.global/neis/bakeoff/logs/%x_%A_%a.out
+#SBATCH -e /scratch.global/neis/bakeoff/logs/%x_%A_%a.err
+#SBATCH --mail-type=END,FAIL
+#SBATCH -n 1
+#SBATCH --mem 64G
+#SBATCH --time=24:00:00
+
+# Back up the rufus files to s3 (tier 2 storage)
+
+group1=()
+while IFS=  read -r -d $'\0'; do
+   group1+=("$REPLY")
+done < <(find group1/ -type d -name "NWD*" -print0)
+
+for i in "${group1[@]}"; do
+   sample=$(basename $i)
+    s3cmd sync --exclude '*Intermediates/*' --exclude '*TempOverlap/*' --skip-existing ${i}/ s3://plab/bakeoff/group1/rufus/${sample}/
+done
+
+group2=()
+while IFS=  read -r -d $'\0'; do
+   group2+=("$REPLY")
+done < <(find group2/ -type d -name "NWD*" -print0)
+
+for i in "${group2[@]}"; do
+   sample=$(basename $i)
+   s3cmd sync --exclude '*Intermediates/*' --exclude '*TempOverlap/*' --skip-existing ${i}/ s3://plab/bakeoff/group2/rufus/${sample}/
+done

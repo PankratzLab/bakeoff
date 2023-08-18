@@ -1,0 +1,44 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH -o /scratch.global/neis/bakeoff/group1/logs/%x_%A_%a.out
+#SBATCH -e /scratch.global/neis/bakeoff/group1/logs/%x_%A_%a.err
+#SBATCH --mail-type=END,FAIL
+#SBATCH -n 40
+#SBATCH --mem 64G
+#SBATCH --time=24:00:00
+
+
+set -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+
+module load parallel
+
+
+refDir=/home/pankrat2/public/resources/GATK4/
+cramDir1=/scratch.global/neis/bakeoff/group1/cram/
+cramDir2=/scratch.global/neis/bakeoff/group2/cram/
+rufusRefDir=/home/pankrat2/public/resources/RUFUS/
+
+
+
+echo "Setting sample number to ${SLURM_ARRAY_TASK_ID} + ${OFFSET}"
+SAMPLE_NUM=$(($SLURM_ARRAY_TASK_ID+$OFFSET))
+SAMPLE=$(sed -n "${SAMPLE_NUM}p" /scratch.global/neis/bakeoff/unfinished.txt)
+
+echo "Sample number ${SAMPLE_NUM} is ${SAMPLE}"
+
+echo "Running RUFUS on sample ${SAMPLE}"
+singularity run --pwd "/scratch.global/neis/bakeoff/group1/${SAMPLE}" \
+--bind "$refDir" \
+--bind "$cramDir1" \
+--bind "$cramDir2"  \
+--bind "$rufusRefDir" \
+--bind "/scratch.global/neis/bakeoff/group1/${SAMPLE}" \
+"docker://ghcr.io/pankratzlab/rufus:master" \
+/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/group1/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 40 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa

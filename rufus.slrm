@@ -1,0 +1,28 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH -o /scratch.global/neis/bakeoff/${GROUP}/logs/%x_%A_%a.out
+#SBATCH -e /scratch.global/neis/bakeoff/${GROUP}/logs/%x_%A_%a.err
+#SBATCH --mail-type=END,FAIL
+#SBATCH -n 40
+#SBATCH --mem 64G
+#SBATCH --time=24:00:00
+
+module load samtools
+module load bamtools
+module load bedtools
+
+echo "Setting sample number to ${SLURM_ARRAY_TASK_ID} + ${OFFSET}"
+SAMPLE_NUM=$(($SLURM_ARRAY_TASK_ID+$OFFSET))
+SAMPLE=$(sed -n "${SAMPLE_NUM}p" /scratch.global/neis/bakeoff/${GROUP}/samples.txt)
+
+echo "Sample number ${SAMPLE_NUM} is ${SAMPLE}"
+# if SAMPLE directory does not exist, create it
+if [[ ! -d "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" && ${SAMPLE_NUM} -le ${TOTAL_SAMPLES} ]]; then
+    mkdir /scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}
+    cd /scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}
+    echo "Running RUFUS on sample ${SAMPLE}"
+    bash /home/pankrat2/neis/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa  -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 40 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
+else
+    echo "Directory /scratch.global/neis/bakeoff/${GROUP}/${SAMPLE} already exists or sample not found."
+fi

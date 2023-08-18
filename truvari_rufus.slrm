@@ -1,0 +1,106 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH --error=%x.%j.e
+#SBATCH --output=%x.%j.o
+#SBATCH --mail-type=END,FAIL
+#SBATCH --time=8:00:00
+#SBATCH -n 6
+#SBATCH -N 1
+#SBATCH --mem 23G
+
+
+
+
+set -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+
+
+module load parallel
+
+################################################################################################
+
+# WIP with lots of TODOs
+
+################################################################################################
+
+
+
+# args
+threads=6
+# file matching the bakeoff pairs
+sampleFile=/scratch.global/neis/bakeoff/329_duplicate_pairs_wo_MZs.csv
+#root directory where rufus output can be found
+bakeoffLoc=/scratch.global/neis/bakeoff/
+#output location
+outDir=/scratch.global/neis/bakeoff/truvari
+# ref genome
+ref=/home/pankrat2/public/bin/ref/GRCh38_full_analysis_set_plus_decoy_hla.fa
+# truvari install location
+truvariLoc=/home/tsaim/lane0212/.local/bin/truvari
+
+mkdir -p $outDir
+cd $outDir
+
+
+# function to parse vcfs and run truvari
+function makeComparison {
+    g1Sample=$1
+    g2Sample=$2
+    loc=$3
+    out=$4
+    referenceGenome=$5
+    truvari=$6
+    
+    #Build paths for the two vcfs we will compare
+    g1Vcf=$loc/group1/$g1Sample/"$g1Sample".recab.cram.generator.V2.overlap.hashcount.fastq.bam.FINAL.vcf.gz
+    g2Vcf=$loc/group2/$g2Sample/"$g2Sample".recab.cram.generator.V2.overlap.hashcount.fastq.bam.FINAL.vcf.gz
+    
+    #if they both exist, compare them
+    if [ -f "$g1Vcf" ] && [ -f "$g2Vcf" ]; then
+        
+        mkdir -p "$out"
+        
+        #Prepare the vcf by extracting lines with SVTYPE, removing lines where the 10th column is blank
+        zcat $g1Vcf|grep "#\|SVTYPE" \
+        |awk  -v FS='\t' -v OFS='\t' '{ if (NF == 1 || $10 !="") print $0 }' \
+        |bgzip > $out/$g1Sample.bg.sv.tmp.vcf.gz
+        
+        #Add contig info from the reference genome to the vcf, truvari requires contigs and contig lengths
+        bcftools reheader --fai $referenceGenome.fai $out/$g1Sample.bg.sv.tmp.vcf.gz -o $out/$g1Sample.bg.sv.vcf.gz
+        tabix $out/$g1Sample.bg.sv.vcf.gz
+        rm $out/$g1Sample.bg.sv.tmp.vcf.gz
+        
+        # same as above, for the second file
+        zcat $g2Vcf|grep "#\|SVTYPE" \
+        |awk  -v FS='\t' -v OFS='\t' '{ if (NF == 1 || $10 !="") print $0 }' \
+        |bgzip > $out/$g2Sample.bg.sv.tmp.vcf.gz
+        
+        bcftools reheader --fai $referenceGenome.fai $out/$g2Sample.bg.sv.tmp.vcf.gz -o $out/$g2Sample.bg.sv.vcf.gz
+        tabix $out/$g2Sample.bg.sv.vcf.gz
+        rm $out/$g2Sample.bg.sv.tmp.vcf.gz
+        
+        
+        # run truvari bench on the two parsed vcfs
+        singularity run --bind "/scratch.global/neis/bakeoff" --bind "/home/pankrat2/public/bin/ref/" docker://thomasrauter/truvari:1.0 truvari bench -b $out/$g1Sample.bg.sv.vcf.gz -c $out/$g2Sample.bg.sv.vcf.gz -f $referenceGenome -o $out/truvari/
+        
+    fi
+    
+}
+
+export -f makeComparison
+
+
+cat $sampleFile \
+|parallel --colsep ',' -j$threads "makeComparison {1} {2} $bakeoffLoc $outDir/{1}_v_{2}_matched/ $ref $truvariLoc"
+
+
+
+# sampleFile=/home/tsaim/lane0212/git/Analysis/topmed/bakeoff/314_duplicate_pairs_wo_MZs.parl2.unmatched.txt
+
+# cat $sampleFile \
+# |parallel --colsep '\t' -j$threads "makeComparison {1} {2} $bakeoffLoc $outDir/{1}_v_{2}_unmatched/ $ref $truvariLoc"
