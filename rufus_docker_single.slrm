@@ -1,13 +1,14 @@
 #!/bin/bash
 #$ -cwd
 #$ -S /bin/bash
-#SBATCH --error=/scratch.global/neis/bakeoff/${GROUP}/logs/%x.%j.e
-#SBATCH --output=/scratch.global/neis/bakeoff/${GROUP}/logs/%x.%j.o
-#SBATCH --mail-type=END,FAIL
+#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x.%j.e
+#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x.%j.o
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=neis@umn.edu
 #SBATCH --time=24:00:00
 #SBATCH -n 40
 #SBATCH -N 1
-#SBATCH --mem 128G
+#SBATCH --mem 64G
 
 
 

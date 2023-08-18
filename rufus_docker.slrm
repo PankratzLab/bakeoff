@@ -3,7 +3,8 @@
 #$ -S /bin/bash
 #SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%A_%a.e
 #SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
-#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-type=ARRAY_TASKS,FAIL
+#SBATCH --mail-user=neis@umn.edu
 #SBATCH --time=48:00:00
 #SBATCH -n 40
 #SBATCH -N 1
@@ -26,8 +27,9 @@ cramDir1=/scratch.global/neis/bakeoff/group1/cram/
 cramDir2=/scratch.global/neis/bakeoff/group2/cram/
 rufusRefDir=/home/pankrat2/public/resources/RUFUS/
 
+echo "Running RUFUS for group ${GROUP}. Samples remaining: ${TOTAL_SAMPLES}"
 
-SAMPLE_NUM=$(($SLURM_ARRAY_TASK_ID+$OFFSET))
+SAMPLE_NUM=${SLURM_ARRAY_TASK_ID}
 
 while [ ${SAMPLE_NUM} -le ${TOTAL_SAMPLES} ]; do
     SAMPLE=$(sed -n "${SAMPLE_NUM}p" /scratch.global/neis/bakeoff/${GROUP}/samples.txt)
@@ -36,7 +38,6 @@ while [ ${SAMPLE_NUM} -le ${TOTAL_SAMPLES} ]; do
         mkdir -p ${GROUP}/${SAMPLE}
         break
     else
-        echo "Sample ${SAMPLE} already done"
         SAMPLE_NUM=$((SAMPLE_NUM + SLURM_ARRAY_TASK_COUNT))
     fi
 done

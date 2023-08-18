@@ -1,11 +1,18 @@
 #!/bin/bash
+GROUP=$1
+TOTAL_SAMPLES=$(wc -l /scratch.global/neis/bakeoff/${GROUP}/samples.txt | awk '{print $1}')
+CHUNKSIZE=10
+DONE_SAMPLES=$(find /scratch.global/neis/bakeoff/${GROUP}/ -name "*FINAL.vcf.gz.tbi" | wc -l)
+REMAINING_SAMPLES=$((${TOTAL_SAMPLES} - ${DONE_SAMPLES}))
+if [[ -n $2 ]]; then
+    NUM_CHUNKS=$2
+else
+    NUM_CHUNKS=$(((REMAINING_SAMPLES + CHUNKSIZE - 1) / CHUNKSIZE))
+fi
 
-TOTAL_SAMPLES=$(wc -l /scratch.global/neis/bakeoff/group1/samples.txt | awk '{print $1}')
-OFFSET=0
-CHUNKSIZE=$2
-NUM_CHUNKS=$(((TOTAL_SAMPLES + CHUNKSIZE - 1) / CHUNKSIZE))
-
-for ((i=0; i<NUM_CHUNKS; i++)); do
-    sbatch --array=1-${CHUNKSIZE} -p amd2tb --export=TOTAL_SAMPLES=${TOTAL_SAMPLES},OFFSET=${OFFSET} rufus.slrm
-    OFFSET=$((OFFSET + CHUNKSIZE))
+CUR_BATCH=$(sbatch --array=1-${CHUNKSIZE} --parsable -p amd512 --export=TOTAL_SAMPLES=${REMAINING_SAMPLES},GROUP=${GROUP} rufus_docker.slrm)
+for ((i=1; i<NUM_CHUNKS; i++)); do
+    CUR_BATCH=$(sbatch --array=1-${CHUNKSIZE} --parsable --dependency=afterok:${CUR_BATCH} -p amd512 --export=TOTAL_SAMPLES=${REMAINING_SAMPLES},GROUP=${GROUP} rufus_docker.slrm)
 done
+
+sbatch -p pankratz --dependency=afterok:${CUR_BATCH} backup_rufus.slrm

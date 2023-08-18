@@ -12,5 +12,6 @@ module load samtools
 module load bamtools
 module load bedtools
 
+mkdir -p /scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}
 cd /scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}
 bash /home/pankrat2/neis/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa  -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 40 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
