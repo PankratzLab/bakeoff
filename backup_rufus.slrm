@@ -4,6 +4,7 @@
 #SBATCH -o /scratch.global/neis/bakeoff/logs/%x_%A_%a.out
 #SBATCH -e /scratch.global/neis/bakeoff/logs/%x_%A_%a.err
 #SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=neis@umn.edu
 #SBATCH -n 1
 #SBATCH --mem 64G
 #SBATCH --time=24:00:00

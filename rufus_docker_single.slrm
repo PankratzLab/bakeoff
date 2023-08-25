@@ -19,7 +19,7 @@ set -e
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
-
+SECONDS=0
 
 module load parallel
 
@@ -43,3 +43,5 @@ singularity run --pwd "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" \
 --bind "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" \
 "docker://ghcr.io/pankratzlab/rufus:master" \
 /RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 40 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
+ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+echo $ELAPSED
