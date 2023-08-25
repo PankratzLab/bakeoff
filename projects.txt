@@ -1,0 +1,9 @@
+/home/pankrat2/shared/GSAv2/Phase3Reports/
+/home/pankrat2/shared/MayoVTE/Genvisis/Phase3/
+/home/pankrat2/shared/Nurses/Genvisis/Phase3/
+/home/pankrat2/shared/HVH/Genvisis/HVH1/Phase3/
+/home/pankrat2/shared/HVH/Genvisis/HVH2/Phase3/
+/home/pankrat2/shared/HVH/Genvisis/HVH3/Phase3/
+/home/pankrat2/shared/WGHS/Genvisis/HumanHapPh3/
+/home/pankrat2/shared/Linker/Genvisis/
+/home/pankrat2/shared/LLS/Genvisis/Phase3/

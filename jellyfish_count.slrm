@@ -1,0 +1,19 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%A_%a.e
+#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=neis@umn.edu
+#SBATCH --time=12:00:00
+#SBATCH -n 40
+#SBATCH -N 1
+#SBATCH --mem 64G
+
+module load samtools
+module load bamtools
+
+RDIR=/home/pankrat2/neis/RUFUS
+modifiedJelly=$RDIR/bin/externals/modified_jellyfish/src/modified_jellyfish_project/bin/jellyfish
+
+$modifiedJelly count -C -m 25  -s 8G -t 40 -o /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.Jhash /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa

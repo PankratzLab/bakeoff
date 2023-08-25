@@ -1,0 +1,18 @@
+#!/bin/bash
+
+NUM_PROJECTS=9
+povs=(.5 .6 .7 .8 .9)
+for pov in ${povs[@]}; do
+    cd /panfs/jay/groups/0/pankrat2/shared/Ovation/Genvisis/Ovation
+    java -jar ~/genvisis_pc.jar org.genvisis.cnv.analysis.pca.PCSelection summary=/scratch.global/neis/bakeoff/Summary.csv pov=$pov jump=1000 pcabase=. singularValues=.PCs.SingularValues.txt
+    java -jar ~/genvisis_pc.jar org.genvisis.cnv.analysis.pca.PCSelection summary=/scratch.global/neis/bakeoff/Summary.csv pov=$pov jump=1000 pcabase=. singularValues=_320PCs.PCs.SingularValues.txt
+    cd /panfs/jay/groups/0/pankrat2/shared/PEAS/Genvisis/Phase3
+    java -jar ~/genvisis_pc.jar org.genvisis.cnv.analysis.pca.PCSelection summary=/scratch.global/neis/bakeoff/Summary.csv pov=$pov jump=1000 pcabase=. singularValues=.PCs.SingularValues.txt
+    for ((i=1; i<=NUM_PROJECTS; i++)); do
+        PROJECT=$(sed -n "${i}p" /scratch.global/neis/bakeoff/projects.txt)
+        cd ${PROJECT}
+        java -jar ~/genvisis_pc.jar org.genvisis.cnv.analysis.pca.PCSelection summary=/scratch.global/neis/bakeoff/Summary.csv pov=$pov jump=1000
+    done
+done
+
+    
