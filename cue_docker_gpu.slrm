@@ -1,0 +1,43 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH -p k40                                             
+#SBATCH --gres=gpu:k40:1
+#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%A_%a.e
+#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=neis@umn.edu
+#SBATCH --time=24:00:00
+#SBATCH -n 1
+#SBATCH -N 1
+#SBATCH --mem 60G
+
+
+set -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+SECONDS=0
+
+
+refDir=/home/pankrat2/public/resources/GATK4/
+cramDir1=/scratch.global/neis/bakeoff/group1/cram/
+cramDir2=/scratch.global/neis/bakeoff/group2/cram/
+
+
+echo "Running Cue for group1."
+
+echo "Running Cue on sample NWD100813 starting at $(date)"
+singularity run --pwd "/scratch.global/neis/bakeoff/cue" \
+--bind "$refDir" \
+--bind "$cramDir1" \
+--bind "$cramDir2"  \
+--bind "/scratch.global/neis/bakeoff/cue" \
+--tmpdir=/scratch.global/neis/tmp \
+"docker://ghcr.io/pankratzlab/cue:master" \
+/app/cue/engine/call.py --data_config call_data.yaml --model_config call_model.yaml
+
+ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+echo $ELAPSED

@@ -5,8 +5,8 @@
 #SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
 #SBATCH --mail-type=ARRAY_TASKS,FAIL
 #SBATCH --mail-user=neis@umn.edu
-#SBATCH --time=48:00:00
-#SBATCH -n 40
+#SBATCH --time=24:00:00
+#SBATCH -n 80
 #SBATCH -N 1
 #SBATCH --mem 128G
 
@@ -18,9 +18,6 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
 SECONDS=0
-
-module load parallel
-
 
 refDir=/home/pankrat2/public/resources/GATK4/
 cramDir1=/scratch.global/neis/bakeoff/group1/cram/
@@ -50,6 +47,7 @@ singularity run --pwd "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" \
 --bind "$rufusRefDir" \
 --bind "/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}" \
 "docker://ghcr.io/pankratzlab/rufus:master" \
-/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 40 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
+/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 80 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
+
 ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
 echo $ELAPSED

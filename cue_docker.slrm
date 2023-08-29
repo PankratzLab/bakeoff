@@ -1,0 +1,57 @@
+#!/bin/bash
+#$ -cwd
+#$ -S /bin/bash
+#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%A_%a.e
+#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=neis@umn.edu
+#SBATCH --time=24:00:00
+#SBATCH -n 10
+#SBATCH -N 1
+#SBATCH --mem 60G
+
+
+set -e
+
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+# echo an error message before exiting
+trap 'echo "\"${last_command}\" command filed with exit code $?."' EXIT
+SECONDS=0
+
+
+refDir=/home/pankrat2/public/bin/ref/
+cramDir1=/scratch.global/neis/bakeoff/group1/cram/
+cramDir2=/scratch.global/neis/bakeoff/group2/cram/
+outdir=/scratch.global/neis/bakeoff/cue/${SAMPLE}/
+mkdir -p $outdir
+cd $outdir
+
+# generate data config file
+echo -e "bam: \"/scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram\"\n\
+fai: \"/home/pankrat2/public/bin/ref/GRCh38_full_analysis_set_plus_decoy_hla.fai\"\n\
+chr_names: null\n\
+logging_level: \"INFO\"" > call_data.yaml
+
+# generate model config file
+echo -e "model_path: \"/app/cue/data/models/cue.v2.pt\"\n\
+gpu_ids: []\n\
+n_jobs_per_gpu: 1\n\
+n_cpus: 10\n\
+report_interval: 100\n\
+batch_size: 16" > call_model.yaml
+
+echo "Running Cue for ${SAMPLE}"
+
+echo "Running Cue on sample ${SAMPLE} starting at $(date)"
+singularity run --pwd "${outdir}" \
+--bind "$refDir" \
+--bind "$cramDir1" \
+--bind "$cramDir2"  \
+--bind "$outdir" \
+--tmpdir "/scratch.global/neis/tmp" \
+"docker://ghcr.io/pankratzlab/cue:master" \
+python3 /app/cue/engine/call.py --data_config call_data.yaml --model_config call_model.yaml
+
+ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+echo $ELAPSED

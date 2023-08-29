@@ -10,9 +10,15 @@ else
     NUM_CHUNKS=$(((REMAINING_SAMPLES + CHUNKSIZE - 1) / CHUNKSIZE))
 fi
 
-CUR_BATCH=$(sbatch --array=1-${CHUNKSIZE} --parsable -p amd512 --export=TOTAL_SAMPLES=${REMAINING_SAMPLES},GROUP=${GROUP} rufus_docker.slrm)
+if [[ -n $3 ]]; then
+    partition=$3
+else
+    partition="amd2tb"
+fi
+
+CUR_BATCH=$(sbatch --array=1-${CHUNKSIZE} --parsable -p ${partition} --export=TOTAL_SAMPLES=${REMAINING_SAMPLES},GROUP=${GROUP} rufus_docker.slrm)
 for ((i=1; i<NUM_CHUNKS; i++)); do
-    CUR_BATCH=$(sbatch --array=1-${CHUNKSIZE} --parsable --dependency=afterok:${CUR_BATCH} -p amd512 --export=TOTAL_SAMPLES=${REMAINING_SAMPLES},GROUP=${GROUP} rufus_docker.slrm)
+    CUR_BATCH=$(sbatch --array=1-${CHUNKSIZE} --parsable --dependency=aftercorr:${CUR_BATCH} -p ${partition} --export=TOTAL_SAMPLES=${REMAINING_SAMPLES},GROUP=${GROUP} rufus_docker.slrm)
 done
 
-sbatch -p pankratz --dependency=afterok:${CUR_BATCH} backup_rufus.slrm
+sbatch -p pankratz --dependency=afterany:${CUR_BATCH} backup_rufus.slrm
