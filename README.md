@@ -10,6 +10,10 @@ Multiple batch run with 1000G as the exclusion list. Runs multiple batches of 10
 
 `./runAll <group name> [num chunks (default: remaining samples)] [partition (default: amd2tb)]`
 
+Back up RUFUS output to tier2 (runs automatically after a successful batch run):
+
+`sbatch -p pankratz backup_rufus.slrm`
+
 Note: modify the user email to get notified on failure. Batch runs can only be run on certain partitions that allow job arrays. If a sample fails, you should be able to just re-run the batch script, and it will re-run samples that haven't completed, since it searches through all samples for a given group. RUFUS seems to handle re-runs without needing to do any cleanup in between, skipping steps that already have output.
 
 ## Cue
