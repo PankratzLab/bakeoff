@@ -23,6 +23,7 @@ SECONDS=0
 refDir=/home/pankrat2/public/bin/ref/
 cramDir1=/scratch.global/neis/bakeoff/group1/cram/
 cramDir2=/scratch.global/neis/bakeoff/group2/cram/
+cramDir3=/scratch.global/neis/bakeoff/NA12878/cram/
 outdir=/scratch.global/neis/bakeoff/cue/${SAMPLE}/
 mkdir -p $outdir
 cd $outdir
@@ -48,6 +49,7 @@ singularity run --pwd "${outdir}" \
 --bind "$refDir" \
 --bind "$cramDir1" \
 --bind "$cramDir2"  \
+--bind "$cramDir3"  \
 --bind "$outdir" \
 --tmpdir "/scratch.global/neis/tmp" \
 "docker://ghcr.io/pankratzlab/cue:master" \

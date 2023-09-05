@@ -5,10 +5,10 @@
 #SBATCH --output=/scratch.global/neis/bakeoff/logs/%x.%j.o
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=neis@umn.edu
-#SBATCH --time=96:00:00
-#SBATCH -n 126
+#SBATCH --time=12:00:00
+#SBATCH -n 80
 #SBATCH -N 1
-#SBATCH --mem 256G
+#SBATCH --mem 128G
 
 
 
@@ -40,6 +40,6 @@ singularity run --pwd "$outDir" \
 --bind "$rufusRefDir" \
 --bind "$outDir" \
 "docker://ghcr.io/pankratzlab/rufus:master" \
-/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -e /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.Jhash -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -k 25 -t 126 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
+/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}.mini.bam -e /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.Jhash -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -k 25 -t 80 -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
 ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
 echo $ELAPSED

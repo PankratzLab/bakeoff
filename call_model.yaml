@@ -1,0 +1,7 @@
+model_path: "/app/cue/data/models/cue.v2.pt"
+gpu_ids: []
+n_jobs_per_gpu: 1
+n_cpus: 1
+report_interval: 100
+batch_size: 16
+

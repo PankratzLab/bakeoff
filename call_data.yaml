@@ -1,0 +1,5 @@
+bam: "/scratch.global/neis/bakeoff/group1/cram/NWD100813.recab.cram"
+fai: "/home/pankrat2/public/bin/ref/GRCh38_full_analysis_set_plus_decoy_hla.fai"
+chr_names: null
+logging_level: "INFO"
+
