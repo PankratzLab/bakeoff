@@ -1,8 +1,9 @@
 #!/bin/bash
 #$ -cwd
 #$ -S /bin/bash
-#SBATCH -o /scratch.global/neis/bakeoff/group1/logs/%x_%A_%a.out
-#SBATCH -e /scratch.global/neis/bakeoff/group1/logs/%x_%A_%a.err
+#SBATCH --job-name=rufus_noncontainer
+#SBATCH -o /scratch.global/neis/bakeoff/group1/logs/%x_%j.out
+#SBATCH -e /scratch.global/neis/bakeoff/group1/logs/%x_%j.err
 #SBATCH --mail-type=END,FAIL
 #SBATCH -n 40
 #SBATCH --mem 64G

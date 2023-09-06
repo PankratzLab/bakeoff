@@ -1,20 +1,39 @@
 # Bakeoff scripts
 
+Location: `/scratch.global/neis/bakeoff/`
+
 ## RUFUS
 
-Single run with 1000G as the exclusion list:
+### Scripts
 
-`sbatch -p <partition> --export=GROUP=[group name, i.e. group1],SAMPLE=[NWD###] ru_1000g.slrm`
+These scripts will submit RUFUS jobs (detailed below)
 
-Multiple batch run with 1000G as the exclusion list. Runs multiple batches of 10 for a specified group, submitting each as a job array. Skips samples where there exists a `*.FINAL.vcf.gz.tbi` file:
+`runAll` : Submit a batch of samples for a group as separate jobs.
+    
+    Usage: /runAll <group, i.e. group1> [batchsize] [partition (default: msismall)]
 
-`./runAll <group name> [num chunks (default: remaining samples)] [partition (default: amd2tb)]`
+`runArray` : Submit a batch of samples for a group as job arrays (use only if you're able to use amd2tb or amd512 or msilarge).
+    
+    Usage: <group name> [num chunks (default: remaining samples)] [partition (default: amd2tb)]
 
-Back up RUFUS output to tier2 (runs automatically after a successful batch run):
+### Slurm scripts
 
-`sbatch -p pankratz backup_rufus.slrm`
+`rufus_docker_single.slrm` : Use for running a single sample in a container.
 
-Note: modify the user email to get notified on failure. Batch runs can only be run on certain partitions that allow job arrays. If a sample fails, you should be able to just re-run the batch script, and it will re-run samples that haven't completed, since it searches through all samples for a given group. RUFUS seems to handle re-runs without needing to do any cleanup in between, skipping steps that already have output.
+`rufus_docker.slrm` : Use for submitting multiple batches of jobs with job arrays.
+
+`rufus_docker_nonarray.slrm` : Use for submitting a batch of samples as separate jobs.
+
+`backup_rufus.slrm` : Back up all RUFUS output to tier2 storage. This runs automatically in `runAll`
+
+### Troubleshooting
+
+If a job fails, usually re-running it does the trick. This can be done by just running `runAll` again normally, since it'll just run any incomplete samples. 
+
+If the same sample fails multiple times (the sample name and group are logged), it may help to run without a container:
+
+    sbatch -p <partition> --export=GROUP=[group name, i.e. group1],SAMPLE=[NWD###] rufus_single.slrm
+
 
 ## Cue
 

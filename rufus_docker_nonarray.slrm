@@ -1,9 +1,9 @@
 #!/bin/bash
 #$ -cwd
 #$ -S /bin/bash
-#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%A_%a.e
-#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%A_%a.o
-#SBATCH --mail-type=ARRAY_TASKS,FAIL
+#SBATCH --error=/scratch.global/neis/bakeoff/logs/%x_%j.e
+#SBATCH --output=/scratch.global/neis/bakeoff/logs/%x_%j.o
+#SBATCH --mail-type=FAIL
 #SBATCH --mail-user=gener078@umn.edu
 #SBATCH --time=24:00:00
 #SBATCH -n 80
@@ -26,7 +26,7 @@ rufusRefDir=/home/pankrat2/public/resources/RUFUS/
 
 echo "Running RUFUS for group ${GROUP}. Samples remaining: ${TOTAL_SAMPLES}"
 
-SAMPLE_NUM=${SLURM_ARRAY_TASK_ID}
+SAMPLE_NUM=${RANK}
 
 while [ ${SAMPLE_NUM} -le ${TOTAL_SAMPLES} ]; do
     SAMPLE=$(sed -n "${SAMPLE_NUM}p" /scratch.global/neis/bakeoff/${GROUP}/samples.txt)
