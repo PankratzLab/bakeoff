@@ -1,15 +1,15 @@
 #!/bin/bash
 
 if [[ $# -lt 1 ]]; then
-    echo "Usage: ./runAll <group> [batchsize (default: remaining samples)] [partition (default: msismall)]"
+    echo "Usage: ./runAll <group> [batchsize] [partition (default: msismall)]"
     exit 1
 fi
 
 GROUP=$1
-EXCLUSION="1000G_SNP"
 TOTAL_SAMPLES=$(wc -l /scratch.global/neis/bakeoff/${GROUP}/samples.txt | awk '{print $1}')
-DONE_SAMPLES=$(find /scratch.global/neis/bakeoff/1000G_SNP/${GROUP}/ -name "*FINAL.vcf.gz.tbi" | wc -l)
+DONE_SAMPLES=$(find /scratch.global/neis/bakeoff/${GROUP}/ -name "*FINAL.vcf.gz.tbi" | wc -l)
 REMAINING_SAMPLES=$((${TOTAL_SAMPLES} - ${DONE_SAMPLES}))
+EXCLUSION="1000G"
 
 if [[ -n $2 ]]; then
     BATCHSIZE=$2
@@ -22,7 +22,7 @@ if [[ -n $3 ]]; then
 else
     partition="msismall"
 fi
-RANK=1
+
 CUR_BATCH=$(sbatch --parsable -p ${partition} --export=ALL rufus_docker_nonarray.slrm)
 for ((i=1; i< BATCHSIZE; i++)); do
     RANK=$((i + 1))

@@ -5,10 +5,10 @@
 #SBATCH --output=/scratch.global/neis/bakeoff/logs/%x.%j.o
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=gener078@umn.edu
-#SBATCH --time=12:00:00
-#SBATCH -n 80
+#SBATCH --time=24:00:00
+#SBATCH -n 40
 #SBATCH -N 1
-#SBATCH --mem 128G
+#SBATCH --mem 64G
 
 set -e
 
@@ -24,9 +24,16 @@ module load parallel
 refDir=/home/pankrat2/public/resources/GATK4/
 cramDir=/scratch.global/neis/bakeoff/${GROUP}/cram/
 rufusRefDir=/home/pankrat2/public/resources/RUFUS/
+BASE=""
 
+if [[ $EXCLUSION == "1000G_SNP" ]]; then
+    EXCLUSION=${rufusRefDir}1000G.snp.RUFUSreference.min45.Jhash
+    BASE="1000G_SNP/"
+else
+    EXCLUSION=${rufusRefDir}1000G.RUFUSreference.min45.Jhash
+fi
 
-outDir=/scratch.global/neis/bakeoff/${GROUP}/${SAMPLE}
+outDir=/scratch.global/neis/bakeoff/${BASE}${GROUP}/${SAMPLE}
 mkdir -p $outDir
 cd $outDir
 
@@ -37,6 +44,6 @@ singularity run --pwd "$outDir" \
 --bind "$rufusRefDir" \
 --bind "$outDir" \
 "docker://ghcr.io/pankratzlab/rufus:master" \
-/RUFUS/runRufus.sh -vs -s /scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram -e /home/pankrat2/public/resources/RUFUS/1000G.RUFUSreference.min45.Jhash -k 25 -t 80  -r /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa -cr /home/pankrat2/public/resources/GATK4/GRCh38_full_analysis_set_plus_decoy_hla.fa
+/RUFUS/runRufus.sh -vs -s ${cramDir}${SAMPLE}.recab.cram -e ${EXCLUSION} -k 25 -t 40  -r ${refDir}GRCh38_full_analysis_set_plus_decoy_hla.fa -cr ${refDir}GRCh38_full_analysis_set_plus_decoy_hla.fa
 ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
 echo $ELAPSED

@@ -21,16 +21,14 @@ SECONDS=0
 
 
 refDir=/home/pankrat2/public/bin/ref/
-cramDir1=/scratch.global/neis/bakeoff/group1/cram/
-cramDir2=/scratch.global/neis/bakeoff/group2/cram/
-cramDir3=/scratch.global/neis/bakeoff/NA12878/cram/
+cramDir=/scratch.global/neis/bakeoff/${GROUP}/cram/
 outdir=/scratch.global/neis/bakeoff/cue/${SAMPLE}/
 mkdir -p $outdir
 cd $outdir
 
 # generate data config file
-echo -e "bam: \"/scratch.global/neis/bakeoff/${GROUP}/cram/${SAMPLE}.recab.cram\"\n\
-fai: \"/home/pankrat2/public/bin/ref/GRCh38_full_analysis_set_plus_decoy_hla.fai\"\n\
+echo -e "bam: \"${cramDir}${SAMPLE}.recab.cram\"\n\
+fai: \"${refDir}GRCh38_full_analysis_set_plus_decoy_hla.fai\"\n\
 chr_names: null\n\
 logging_level: \"INFO\"" > call_data.yaml
 
@@ -47,9 +45,7 @@ echo "Running Cue for ${SAMPLE}"
 echo "Running Cue on sample ${SAMPLE} starting at $(date)"
 singularity run --pwd "${outdir}" \
 --bind "$refDir" \
---bind "$cramDir1" \
---bind "$cramDir2"  \
---bind "$cramDir3"  \
+--bind "$cramDir" \
 --bind "$outdir" \
 --tmpdir "/scratch.global/neis/tmp" \
 "docker://ghcr.io/pankratzlab/cue:master" \

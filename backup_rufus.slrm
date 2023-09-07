@@ -6,7 +6,7 @@
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=neis@umn.edu
 #SBATCH -n 1
-#SBATCH --mem 64G
+#SBATCH --mem 8G
 #SBATCH --time=24:00:00
 
 # Back up the rufus files to s3 (tier 2 storage)
