@@ -23,10 +23,10 @@ else
     partition="msismall"
 fi
 RANK=1
-CUR_BATCH=$(sbatch --parsable -p ${partition} --export=ALL rufus_docker_nonarray.slrm)
+CUR_BATCH=$(sbatch --parsable -p ${partition} --export=GROUP=${GROUP},REMAINING_SAMPLES=${REMAINING_SAMPLES},BATCHSIZE=${BATCHSIZE},EXCLUSION=${EXCLUSION},RANK=${RANK} rufus_docker_nonarray.slrm)
 for ((i=1; i< BATCHSIZE; i++)); do
     RANK=$((i + 1))
-    CUR_BATCH=$(sbatch --parsable -p ${partition} --export=ALL rufus_docker_nonarray.slrm)
+    CUR_BATCH=$(sbatch --parsable -p ${partition} --export=GROUP=${GROUP},REMAINING_SAMPLES=${REMAINING_SAMPLES},BATCHSIZE=${BATCHSIZE},EXCLUSION=${EXCLUSION},RANK=${RANK} rufus_docker_nonarray.slrm)
 done
 
 sbatch --dependency=afterany:${CUR_BATCH} backup_rufus.slrm
